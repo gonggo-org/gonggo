@@ -35,10 +35,12 @@
 	sudo cp ./include/civetweb.h /usr/include/civetweb
 	```
 	
-	And copy the **libcivetweb.so.1.16.0** into the Linux architecture-dependent standard shared library directory (in my Linux installation is /usr/lib64) and rename the filename into **libcivetweb.so.1**:
+	And copy the **libcivetweb.so.1.16.0** into the Linux architecture-dependent standard shared library directory (in my Linux installation is /usr/lib64) and create links:
 	
 	```console
-	sudo cp ./libcivetweb.so.1.16.0 /usr/lib64/libcivetweb.so.1
+	sudo cp ./libcivetweb.so.1.16.0 /usr/lib64/
+    sudo ln -sf /usr/lib64/libcivetweb.so.1.16.0 /usr/lib64/libcivetweb.so.1
+    sudo ln -sf /usr/lib64/libcivetweb.so.1 /usr/lib64/libcivetweb.so
 	```
 
 2. Gonggo depends on **glib2** and **sqlite3** shared libraries. Please install the respective development package.
