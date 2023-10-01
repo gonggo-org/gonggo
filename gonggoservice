@@ -1,0 +1,139 @@
+#! /bin/sh
+
+# chkconfig: 2345 99 02
+# description: Industrial service dispatcher
+
+# Adding reaservice to Linux service management, simply:
+# chkconfig --add reaservice
+
+# Original author:  Abdul Yadi <abdulyadi.datatrans@gmail.com>
+
+## EDIT FROM HERE
+
+# Installation prefix
+prefix=/opt/src/git/gonggo
+
+# Who to run the reaservice as, usually "gonggo".  (NOT "root")
+GONGGOUSER=abdul
+
+# Where to keep a log file
+GONGGOLOG="$prefix/log"
+
+# Where to keep pid
+GONGGOPID="$prefix/pid/gonggo.pid"
+
+# Configuration
+GONGGOCONF="$prefix/conf/gonggo.conf"
+
+## STOP EDITING HERE
+
+# Service name and path to start up the reaservice.
+SERVICE="gonggo"
+DAEMON="$prefix/$SERVICE"
+
+# Only start if we can find the reaservice binary.
+test -x $DAEMON ||
+{
+	echo "$DAEMON not found"
+	if [ "$1" = "stop" ]
+	then exit 0
+	else exit 5
+	fi
+}
+
+stopped=0
+
+status_do() {
+	if pgrep -x "$SERVICE" >/dev/null
+	then
+		stopped=0
+	else
+		stopped=1
+	fi
+}
+
+start_do(){
+	echo -n "Starting $SERVICE: "
+	status_do
+	if [ $stopped -eq 0 ]; then
+		echo " ok"
+	else
+		su -l $GONGGOUSER -s /bin/bash -c "$DAEMON -c '$GONGGOCONF'"
+		local i=0
+		while true
+		do
+			status_do
+			if [ $stopped -eq 0 ]; then
+				echo "ok"
+				break
+			else
+				sleep 1
+				i=$((i+1))
+				if [ $i -gt 5 ]; then
+					echo " $SERVICE starting is failed"
+					break
+				fi
+			fi
+		done
+	fi
+}
+
+stop_do(){
+	echo -n "Stopping $SERVICE: "
+	status_do
+	if [ $stopped -eq 1 ]; then
+		echo " ok"
+	else
+		read pid <$GONGGOPID
+		su -l $GONGGOUSER -s /bin/bash -c "kill -s 15 $pid"
+		sleep 1
+		local i=0
+		while true
+		do
+			status_do
+			if [ $stopped -eq 1 ]; then
+				echo " ok"
+				break
+			else
+				i=$((i+1))
+				if [ $i -gt 15 ]; then
+					echo " $SERVICE is busy, stopping is failed"
+					break
+				fi
+			fi
+			sleep 2
+		done
+	fi
+}
+
+# Parse command line parameters.
+case $1 in
+  start)
+	start_do ;;
+  stop)
+	stop_do ;;
+  restart)
+	echo "Restart $SERVICE: "
+	stop_do
+	if [ $stopped -eq 1 ]; then
+		start_do
+	fi
+	;;
+  status)
+	echo -n "$SERVICE status:"
+	status_do
+	if [ $stopped -eq 1 ]; then
+		echo " $SERVICE stopped"
+	else
+		echo " $SERVICE is running"
+
+	fi
+	;;
+  *)
+	# Print help
+	echo "Usage: $0 {start|stop|restart|status}" 1>&2
+	exit 1
+	;;
+esac
+
+exit 0

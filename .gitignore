@@ -1,0 +1,12 @@
+aclocal.m4
+config.status
+config.log
+doc
+gonggo
+gonggo.json
+autom4te.cache
+doc.sh
+*.tar.gz
+build-aux
+Makefile
+Makefile.in
