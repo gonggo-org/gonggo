@@ -5,7 +5,7 @@
    To build shared library with OpenSSL v3.0.x interface, please refer to [Building CivetWeb](https://github.com/civetweb/civetweb/blob/master/docs/Building.md):
    
    ```console
-   make clean slib WITH_WEBSOCKET=1 WITH_DEBUG=1 COPT="-DOPENSSL_API_3_0"
+   make clean slib WITH_WEBSOCKET=1 COPT="-DOPENSSL_API_3_0"
    ``` 
    
    For secured web socket connection (wss), an SSL certificate is required. Refer to [Adding OpenSSL Support](https://github.com/civetweb/civetweb/blob/master/docs/OpenSSL.md) for an example of self-signed certificate.
