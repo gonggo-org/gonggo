@@ -1,0 +1,8 @@
+#ifndef _GONGGO_ERROR_H_
+#define _GONGGO_ERROR_H_
+
+#define ERROR_TERMHANDLER 1
+#define ERROR_START 2
+#define ERROR_DBINIT 3
+
+#endif //_GONGGO_ERROR_H_
