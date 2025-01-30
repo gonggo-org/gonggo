@@ -1,0 +1,593 @@
+{
+    "asyncapi": "3.0.0",
+    "info": {
+        "title": "Gonggo",
+        "version": "1.0.0",
+        "description": "Web socket message dispatcher"
+    },
+    "servers": {
+        "development": {
+            "host": "localhost:8877",
+            "pathname": "/gonggo",
+            "protocol": "wss",
+            "description": "Web socket server for development"
+        }
+    },
+    "operations": {
+        "requestParsingStatus": {
+            "description": "Client request parsing status",
+            "action": "receive",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/requestParsingStatus"}]
+        },
+        "requestExpiredNotification": {
+            "description": "Client request is not responded after timeout elapsed",
+            "action": "receive",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/requestExpiredNotification"}]
+        },        
+        "gonggoTest": {            
+            "description": "Gonggo service availability test. The request should pass requestParsingStatus prior to gonngoTestAnswer.",
+            "action": "send",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/gonggoTestSubmit"}]
+        },
+        "gonggoTestAnswer": {
+            "description": "The answer for gonggoTest.",
+            "action": "receive",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/gonggoTestAnswer"}]
+        },
+        "gonggoResponseDump": {
+            "description": "Gonggo dumps all responses filtered by request UUID for client. The request should pass requestParsingStatus prior to gonngoResponseDumpAnswer.",
+            "action": "send",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/gonggoResponseDump"}]
+        },
+        "gonggoResponseDumpAnswer": {
+            "description": "The answer for gonggoResponseDump",
+            "action": "receive",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/gonggoResponseDumpAnswer"}]
+        },
+        "proxyAliveNotification": {
+            "description": "Proxy start or termination notification for clients subscribing its service",
+            "action": "receive",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/proxyAliveNotification"}]
+        },
+        "proxySubscribe": {
+            "description": "Template for client subscribing any proxy service. The request should pass requestParsingStatus prior to proxyAnswer.",
+            "action": "send",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/proxySubscribe"}]
+        },
+        "proxyAnswer": {
+            "description": "Template for any proxy reply to proxySubscribe.",
+            "action": "receive",
+            "channel": {"$ref": "#/channels/rootChannel"},
+            "messages": [{"$ref": "#/channels/rootChannel/messages/proxyAnswer"}]
+        }
+    },
+    "channels": {
+        "rootChannel": {
+            "address": "/",
+            "messages": {
+                "requestParsingStatus": {"$ref": "#/components/messages/requestParsingStatus"},
+                "requestExpiredNotification": {"$ref": "#/components/messages/requestExpiredNotification"},
+                "gonggoTestSubmit": {"$ref": "#/components/messages/gonggoTestSubmit"},
+                "gonggoTestAnswer": {"$ref": "#/components/messages/gonggoTestAnswer"},
+                "gonggoResponseDump": {"$ref": "#/components/messages/gonggoResponseDumpSubmit"},
+                "gonggoResponseDumpAnswer": {"$ref": "#/components/messages/gonggoResponseDumpAnswer"},
+                "proxyAliveNotification": {"$ref": "#/components/messages/proxyAliveNotification"},
+                "proxySubscribe": {"$ref": "#/components/messages/proxySubscribe"},
+                "proxyAnswer": {"$ref": "#/components/messages/proxyAnswer"}
+            }
+        }
+    },
+    "components": {
+        "messages": {
+            "requestParsingStatus": {
+                "name": "requestParsingStatus",
+                "headers": {"$ref": "#/components/schemas/requestParsingStatusHeader"},
+                "examples": [{
+                    "headers": {
+                        "rid": "e27fd7b9-808e-412b-8533-f5cc54ad613e",
+                        "requestStatus": 1                        
+                    }
+                }]
+            },
+            "requestExpiredNotification": {
+                "name": "requestExpiredNotification",
+                "headers": {"$ref": "#/components/schemas/requestExpiredNotification"},
+                "examples": [
+                    {
+                        "headers": {
+                            "rid": "e27fd7b9-808e-412b-8533-f5cc54ad613e",
+                            "requestStatus": 22
+                        }
+                    }
+                ]
+            },
+            "gonggoTestSubmit": {
+                "name": "gonggoTestSubmit",
+                "headers": {
+                    "$ref": "#/components/schemas/gonggoTestSubmitHeader"
+                },
+                "examples": [{
+                    "headers": {
+                        "rid": "e27fd7b9-808e-412b-8533-f5cc54ad613e",
+                        "service": "test"
+                    }                    
+                }]                
+            },
+            "gonggoTestAnswer": {
+                "name": "gonggoTestAnswer",
+                "headers": {"$ref": "#/components/schemas/gonggoTestAnswerHeader"},
+                "payload": {"$ref": "#/components/schemas/gonggoTestAnswerPayload"},
+                "examples": [
+                    {
+                        "headers": {
+                            "rid": "e27fd7b9-808e-412b-8533-f5cc54ad613e",
+                            "requestStatus": 20,
+                            "serviceStatus": 1
+                        },
+                        "payload": {
+                            "services": ["test", "responseDump"],
+                            "proxies": ["dummy","database","machine"]
+                        }
+                    }
+                ]
+            },
+            "gonggoResponseDumpSubmit": {
+                "name": "gonggoResponseDumpSubmit",
+                "headers": {"$ref": "#/components/schemas/gonggoResponseDumpSubmitHeader"},
+                "payload": {"$ref": "#/components/schemas/gonggoResponseDumpSubmitPayload"},
+                "examples": [
+                    {
+                        "headers": {
+                            "rid": "fb4cad20-2786-4356-aec3-9dae87883e92",
+                            "service": "responseDump"
+                        },
+                        "payload": {
+                            "rid": "e27fd7b9-808e-412b-8533-f5cc54ad613e",
+                            "start": 1,
+                            "size": 10       
+                        }
+                    }
+                ]
+            },
+            "gonggoResponseDumpAnswer": {
+                "name": "gonggoResponseDumpAnswer",
+                "headers": {"$ref": "#/components/schemas/gonggoResponseDumpAnswerHeader"},
+                "payload": {"$ref": "#/components/schemas/gonggoResponseDumpAnswerPayload"},
+                "examples": [
+                    {
+                        "headers": {
+                            "rid": "fb4cad20-2786-4356-aec3-9dae87883e92",
+                            "requestStatus": 20,
+                            "serviceStatus": 1
+                        },
+                        "payload": {
+                            "responses": [
+                                {
+                                    "headers":{},
+                                    "payload":{}
+                                }
+                            ],
+                            "stop": 15,
+                            "more": 32
+                        }
+                    }
+                ]
+            },
+            "proxyAliveNotification": {
+                "name": "proxyAliveNotification",
+                "headers": {"$ref": "#/components/schemas/proxyAliveNotificationHeader"},
+                "payload": {"$ref": "#/components/schemas/proxyAliveNotificationPayload"},
+                "examples": [
+                    {
+                        "headers": {
+                            "requestStatus": 21,
+                            "serviceStatus": 1                            
+                        },
+                        "payload": {
+                            "proxy": "dummy",
+                            "rid": ["e27fd7b9-808e-412b-8533-f5cc54ad613e", "fb4cad20-2786-4356-aec3-9dae87883e92"]
+                        }
+                    }
+                ]
+            },
+            "proxySubscribe": {
+                "name": "proxySubscribe",
+                "headers": {"$ref": "#/components/schemas/proxySubscribeHeader"},
+                "payload": {"$ref": "#/components/schemas/proxySubscribePayload"},
+                "examples": [{
+                    "headers": {
+                        "rid": "fb4cad20-2786-4356-aec3-9dae87883e92",
+                        "proxy": "dummy",
+                        "service": "test",
+                        "timeout": 21600
+                    },
+                    "payload": {
+                        "message": "I am foo"
+                    }
+                }]
+            },
+            "proxyAnswer": {
+                "name": "proxyAnswer",
+                "headers": {"$ref": "#/components/schemas/proxyAnswerHeader"},
+                "payload": {"$ref": "#/components/schemas/proxyAnswerPayload"},
+                "examples": [{
+                    "headers": {
+                        "rid": "fb4cad20-2786-4356-aec3-9dae87883e92",
+                        "requestStatus": 20,
+                        "serviceStatus": 100
+                    },
+                    "payload": {
+                        "reply": "hello foo"
+                    }
+                }]
+            }         
+        },
+
+        "schemas": {
+            "requestParsingStatusHeader": {
+                "description": "request parsing status header",
+                "type": "object",
+                "required": ["rid", "requestStatus"],
+                "properties": {
+                    "rid": {
+                        "type": "string",
+                        "description": "a unique UUID request id whom this message reply to"                        
+                    },
+                    "requestStatus": {
+                        "description": "request status id",
+                        "type": "number",
+                        "enum": [1,2,3,4,5,6,7,8,9,10,11],
+                        "x-requestStatusDescription": {
+                            "1": "Request is Acknowledged",
+                            "2": "Request Header is Missing",
+                            "3": "Request Id is Missing",
+                            "4": "Request Id is Overlength",
+                            "5": "Request Service is Missing",
+                            "6": "Request Service is Reserved",
+                            "7": "Request Payload is Missing",
+                            "8": "Request Payload is Invalid",
+                            "9": "Request Gonggo Service Name is Invalid",
+                            "10": "Request Timeout is Missing",
+                            "11": "Request Timeout is Invalid"
+                        }                        
+                    }
+                },
+                "additionalProperties": false
+            },
+            "requestExpiredNotification": {
+                "description": "request expired notification",
+                "type": "object",
+                "required": ["rid","requestStatus"],
+                "properties": {
+                    "rid": {
+                        "type": "string",
+                        "description": "a unique UUID request id whom this message reply to"
+                    },
+                    "requestStatus": {
+                        "description": "request status id",
+                        "type": "number",
+                        "enum": [22],
+                        "x-requestStatusDescription": {
+                            "22": "Request is Expired"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            },
+            "requestAnsweredStatusHeader": {
+                "title": "Request Answer Status Header",
+                "description": "header for answered request",
+                "type": "object",
+                "required": ["rid","requestStatus"],
+                "properties": {
+                    "rid": {
+                        "type": "string",
+                        "description": "a unique UUID request id whom this message reply to"
+                    },
+                    "requestStatus": {
+                        "description": "request status id",
+                        "type": "number",
+                        "enum": [20],
+                        "x-requestStatusDescription": {
+                            "20": "Request is Answered"
+                        }
+                    }
+                },
+                "additionalProperties": false                
+            },
+            "gonggoSubmitHeader": {
+                "title": "Request Submit Header Base",
+                "description": "header base for request submit",
+                "type": "object",
+                "required": ["rid","service"],
+                "discriminator": "service",
+                "properties": {
+                    "rid": {
+                        "type": "string",
+                        "description": "a unique UUID request id",
+                        "maxLength": 36
+                    },
+                    "service": {
+                        "type": "string",
+                        "description": "the service name"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "gonggoTestSubmitHeader": {                
+                "description": "gonggo test submit header",
+                "allOf": [
+                    {"$ref": "#/components/schemas/gonggoSubmitHeader"},
+                    {
+                        "title": "Gonggo Test Submit Header",
+                        "type": "object",
+                        "required": ["service"],
+                        "properties": {
+                            "service": {"enum": ["test"]}
+                        },
+                        "additionalProperties": false
+                    }
+                ],
+                "additionalProperties": false
+            },
+            "gonggoTestAnswerHeader": { 
+                "description": "gonggo test answer header",                
+                "type": "object",
+                "allOf": [
+                    {"$ref": "#/components/schemas/requestAnsweredStatusHeader"}, 
+                    {
+                        "title": "Test Service Status",
+                        "type": "object",
+                        "required": ["serviceStatus"],                   
+                        "properties": {
+                            "serviceStatus": {
+                                "type": "number",
+                                "enum": [1],
+                                "x-serviceStatusDescription": {"1": "Test is success"}
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                ],
+                "additionalProperties": false
+            },
+            "gonggoTestAnswerPayload": {                
+                "description": "gonggo test answer payload",
+                "type": "object",
+                "required": ["services", "proxies"],
+                "properties": {
+                    "services": {
+                        "description": "array of gonggo services",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "description": "the gonggo service name"
+                        }
+                    },
+                    "proxies": {
+                        "description": "array of active proxies",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "description": "the proxy name"
+                        }                        
+                    }
+                },
+                "additionalProperties": false
+            },
+            "gonggoResponseDumpSubmitHeader": {
+                "description": "gonggo response dump submit header",
+                "allOf": [
+                    {"$ref": "#/components/schemas/gonggoSubmitHeader"},
+                    {
+                        "title": "Response Dump Submit Header",
+                        "type": "object",
+                        "required": ["service"],
+                        "properties": {
+                            "service": {"enum": ["requestDump"]}
+                        },
+                        "additionalProperties": false
+                    }
+                ],
+                "additionalProperties": false
+            },
+            "gonggoResponseDumpSubmitPayload": {
+                "description": "gonggo response dump submit payload",
+                "type": "object",
+                "properties": {
+                    "rid": {
+                        "type": "string",
+                        "description": "a UUID request whose responses for dumping"                       
+                    },
+                    "start": {
+                        "type": "number",
+                        "description": "the lowest one based index for responses dumping",
+                        "minimum": 1
+                    },
+                    "size": {
+                        "type": "number",
+                        "description": "the page size for responses dumping",
+                        "minimum": 1
+                    }
+                },
+                "additionalProperties": false
+            },
+            "gonggoResponseDumpAnswerHeader": {
+                "description": "gonggo response dump answer header",
+                "type": "object",
+                "allOf": [
+                    {"$ref": "#/components/schemas/requestAnsweredStatusHeader"},
+                    {
+                        "title": "Response Dump Service Status",
+                        "type": "object",
+                        "required": [
+                            "serviceStatus"
+                        ],
+                        "properties": {
+                            "serviceStatus": {
+                                "type": "number",
+                                "enum": [1,2],
+                                "x-serviceStatusDescription": {
+                                    "1": "Response Dump is Success",
+                                    "2": "Response Dump Database Error"
+                                }
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                ],
+                "additionalProperties": false               
+            },
+            "gonggoResponseDumpAnswerPayload": {
+                "description": "gonggo response dump answer payload",
+                "type": "object",
+                "required": ["responses", "stop", "more"],
+                "properties": {
+                    "responses": {
+                        "description": "array of responses",
+                        "type": "array",
+                        "items": {
+                            "description": "the response",
+                            "$ref": "#/components/schemas/gonggoAnswerPayload"
+                        }
+                    },
+                    "stop": {
+                        "type": "number",
+                        "description": "the highest one based index of the dumped responses",
+                        "minimum": 0
+                    },
+                    "more": {
+                        "type": "number",
+                        "description": "the remaining count of responses for next dump",
+                        "minimum": 0
+                    }
+                },
+                "additionalProperties": false
+            },
+            "gonggoAnswerPayload": {
+                "desription": "gonggo answer payload structure",
+                "type": "object",
+                "required": ["headers","payload"],
+                "properties": {
+                    "headers": {"type":"object"},
+                    "payload": {"type": "object"}
+                },
+                "additionalProperties": false
+            },
+            "proxyAliveNotificationHeader": {
+                "description": "proxy alive notification header",
+                "type": "object",
+                "required": ["requestStatus","serviceStatus"],
+                "properties": {
+                    "requestStatus": {
+                        "description": "request status id",
+                        "type": "number",
+                        "enum": [21],
+                        "x-requestStatusDescription": {
+                            "21": "Proxy Alive Notification"
+                        }
+                    },
+                    "serviceStatus": {
+                        "type": "number",
+                        "enum": [1,2],
+                        "x-serviceStatusDescription": {
+                            "1": "Proxy Start",
+                            "2": "Proxy Termination"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            },
+            "proxyAliveNotificationPayload": {
+                "description": "proxy alive notification payload",
+                "type": "object",
+                "required": ["proxy", "rid"],
+                "properties": {
+                    "proxy": {
+                        "type": "string",
+                        "description": "the proxy name"
+                    }, 
+                    "rid": {
+                        "type":"array",
+                        "items": {
+                            "type":"string",
+                            "description": "request id subscribing the proxy"
+                        }
+                    }
+                }
+            },
+            "proxySubscribeHeader": {
+                "description": "proxy subscribe header",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/gonggoSubmitHeader"
+                    },
+                    {
+                        "title": "Proxy Subscribe Submit Header",
+                        "type": "object",
+                        "required": ["service","proxy","timeout"],
+                        "properties": {
+                            "service": {
+                                "description": "the service name specific to the proxy"
+                            },
+                            "proxy": {
+                                "type": "string",
+                                "description": "the proxy name",
+                                "minLength": 1,
+                                "maxLength": 50
+                            },
+                            "timeout": {
+                                "type": "integer",
+                                "format": "int64",
+                                "minimum": 1,
+                                "description": "optional timeout in seconds"
+                            }                            
+                        },
+                        "additionalProperties": false
+                    }
+                ],
+                "additionalProperties": false
+            },
+            "proxySubscribePayload": {
+                "description": "Proxy subscribe payload. The payload structure is specific to the proxy.",
+                "type": "object"
+            },
+            "proxyAnswerHeader": {
+                "description": "proxy answer header",
+                "type": "object",
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/requestAnsweredStatusHeader"
+                    },
+                    {
+                        "title": "Proxy Answer Header",
+                        "type": "object",
+                        "required": ["serviceStatus"],
+                        "properties": {
+                            "serviceStatus": {
+                                "type": "number",
+                                "description": "specific to the proxy service",
+                                "minimum": 100
+                            }
+                        },
+                        "additionalProperties": false
+                    }
+                ],
+                "additionalProperties": false
+            },
+            "proxyAnswerPayload": {
+                "description": "Proxy answer payload. The payload structure is specific to the proxy.",
+                "type": "object"
+            }            
+
+        }
+    }
+}
