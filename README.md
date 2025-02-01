@@ -15,4 +15,4 @@ Gonggo simplifies data exchange between websocket clients and various backend se
 - Gonggo provides single port for websocket clients to access various backend services.
 
 - Consistent Client JSON Structure.
-    + Gonggo regulates request and response [JSON structure](https://html-preview.github.io/?url=https://github.com/gonggo-org/gonggo/blob/main/asyncapi/gonggospec/index.html).
+    Gonggo regulates request and response [JSON structure](https://html-preview.github.io/?url=https://github.com/gonggo-org/gonggo/blob/main/asyncapi/gonggospec/index.html).
