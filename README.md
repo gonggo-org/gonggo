@@ -21,3 +21,7 @@ Gonggo simplifies data exchange between websocket clients and various backend se
 Gonggo is developed in C for efficient and fast message dispatching. It depends on libraries written in C: 
 - [CivetWeb](https://github.com/civetweb/civetweb)
 - [cJSON](https://github.com/DaveGamble/cJSON)
+
+## Installation
+
+[How to install](INSTALL.md).
