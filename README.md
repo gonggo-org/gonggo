@@ -7,6 +7,13 @@ Gonggo dispatches request from websocket client to the designated service. There
 
 Second, a multi respond request (subscribe) is submitted by client. The service pushes responses continuosly until an unsubscribe request is submitted.
 
-## Client JSON Structure
+
+## Mission
+
+Gonggo simplifies data exchange between websocket clients and various backend services. 
+
+- Gonggo provides single port for websocket clients to access various backend services.
+
+- Consistent Client JSON Structure
 
 Gonggo regulates request and response [JSON structure](https://html-preview.github.io/?url=https://github.com/gonggo-org/gonggo/blob/main/asyncapi/gonggospec/index.html).
