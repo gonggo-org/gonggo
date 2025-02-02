@@ -26,5 +26,7 @@ Gonggo is developed in C for efficient and fast message dispatching. It depends 
 
 Gonggo can only be installed on Linux server. [How to install](INSTALL.md).
 
+A proxy must be developed for each of backend services. Gonggo provides shared library called **sawang** which encapsulates core data exchange module. All you have to do is defining 5 callback functions. [All about sawang](https://github.com/gonggo-org/sawang).
+
 ## Author
 - Abdul Yadi (abdulyadi.datatrans@gmail.com)

@@ -1,6 +1,16 @@
 # Installing Gonggo on Linux:
 
-1. Build CivetWeb. Download source code from https://github.com/civetweb/civetweb. The CivetWeb version used for current Gonggo development is 1.17.
+1. Build cJSON. Download source code from https://github.com/DaveGamble/cJSON. The cJSON version used for current Gonggo development is 1.7.18.
+   
+   To build shared library, change directory to cJSON cloned directory:
+
+   ```console
+   cmake -DENABLE_CJSON_UTILS=On -DBUILD_SHARED_LIBS=On
+   make
+   sudo make install
+   ```
+
+2. Build CivetWeb. Download source code from https://github.com/civetweb/civetweb. The CivetWeb version used for current Gonggo development is 1.17.
 
    To build shared library with OpenSSL v3.0.x interface, please refer to [Building CivetWeb](https://github.com/civetweb/civetweb/blob/master/docs/Building.md):
    
