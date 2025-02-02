@@ -2,7 +2,7 @@
 
 1. Build cJSON. Download source code from https://github.com/DaveGamble/cJSON. The cJSON version used for current Gonggo development is 1.7.18.
    
-   To build shared library, change directory to cJSON cloned directory:
+   To build shared library, change directory to cJSON cloned directory and build the package:
 
    ```console
    cmake -DENABLE_CJSON_UTILS=On -DBUILD_SHARED_LIBS=On
