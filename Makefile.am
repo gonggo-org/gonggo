@@ -4,10 +4,9 @@ AM_DISTCHECK_CONFIGURE_FLAGS = CPPFLAGS=-I../../cJSON
 
 bin_PROGRAMS = gonggo
 gonggo_SOURCES = ./main/main.c
-include ./cJSON/Makefile.am
 include ./gear/Makefile.am
 
-AM_CFLAGS = $(DEPS_CFLAGS) -I./cJSON -Wall -Werror
+AM_CFLAGS = $(DEPS_CFLAGS) -Wall -Werror
 LIBS = $(DEPS_LIBS) -lcivetweb -lpthread -lrt
 
 if CUSTOMCIVETWEB

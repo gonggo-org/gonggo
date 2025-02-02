@@ -10,7 +10,7 @@ AC_CONFIG_SRCDIR([main/main.c])
 AM_INIT_AUTOMAKE([subdir-objects -Wall -Werror foreign])
 
 # glib-2.0 library dependency
-PKG_CHECK_MODULES([DEPS], [glib-2.0 sqlite3 uuid])
+PKG_CHECK_MODULES([DEPS], [glib-2.0 sqlite3 uuid libcjson])
 
 # civetweb is not available in have pkg-config
 AC_ARG_WITH([civetweb],
