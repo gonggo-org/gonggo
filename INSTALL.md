@@ -55,7 +55,7 @@
    For Fedora and Rocky Linux with dnf package manager:
 
    ```console
-	sudo dnf install libuuid-devel
+   sudo dnf install libuuid-devel
    sudo dnf install glib2-devel
    sudo dnf install sqlite-devel
 	```
