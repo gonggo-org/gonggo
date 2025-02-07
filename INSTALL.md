@@ -46,11 +46,19 @@
 	
 	```console
 	sudo cp ./libcivetweb.so.1.17.0 /usr/lib64/
-    sudo ln -sf /usr/lib64/libcivetweb.so.1.17.0 /usr/lib64/libcivetweb.so.1
-    sudo ln -sf /usr/lib64/libcivetweb.so.1 /usr/lib64/libcivetweb.so
+   sudo ln -sf /usr/lib64/libcivetweb.so.1.17.0 /usr/lib64/libcivetweb.so.1
+   sudo ln -sf /usr/lib64/libcivetweb.so.1 /usr/lib64/libcivetweb.so
 	```
 
-2. Gonggo depends on **glib2** and **sqlite3** shared libraries. Please install the respective development package.
+2. Gonggo depends on **uuid**, **glib2** and **sqlite3** shared libraries. Please install the respective development package.
+
+   For Fedora and Rocky Linux with dnf package manager:
+
+   ```console
+	sudo dnf install libuuid-devel
+   sudo dnf install glib2-devel
+   sudo dnf install sqlite-devel
+	```
 	
 3. Type `autoreconf -i` to remake the GNU Build System files in specified DIRECTORIES and their subdirectories.
 
