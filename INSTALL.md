@@ -16,7 +16,13 @@
    
    ```console
    make clean slib WITH_WEBSOCKET=1 COPT="-DOPENSSL_API_3_0"
-   ``` 
+   ```
+
+   With CivetWeb version 1.17, I encounter error message when stating -DOPENSSL_API_3_0:  "Multiple OPENSSL_API versions defined". The workaround is commenting out Makefile at line number 114:
+
+   ```console
+   #CFLAGS += -DOPENSSL_API_1_1
+   ```
    
    For secured web socket connection (wss), an SSL certificate is required. Refer to [Adding OpenSSL Support](https://github.com/civetweb/civetweb/blob/master/docs/OpenSSL.md) for an example of self-signed certificate.
 	
