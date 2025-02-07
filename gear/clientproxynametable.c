@@ -28,7 +28,12 @@ void client_proxyname_table_create(void) {
 }
 
 GHashTable *client_proxyname_table_similar(void) {
+#ifdef g_hash_table_new_similar
     return client_proxyname_table !=NULL ? g_hash_table_new_similar(client_proxyname_table) : NULL;
+#else
+    return client_proxyname_table !=NULL ? g_hash_table_new_full(g_str_hash, g_str_equal, (GDestroyNotify)free, 
+        (GDestroyNotify)client_proxyname_table_value_destroy) : NULL;
+#endif
 }
 
 void client_proxyname_table_destroy(void) {

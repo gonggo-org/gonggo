@@ -24,7 +24,11 @@ void client_connection_table_create(void) {
 }
 
 GHashTable *client_connection_table_similar(void) {
+#ifdef g_hash_table_new_similar
     return client_connection_table !=NULL ? g_hash_table_new_similar(client_connection_table) : NULL;
+#else
+    return client_connection_table !=NULL ? g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, (GDestroyNotify)client_connection_table_value_destroy) : NULL;
+#endif
 }
 
 void client_connection_table_destroy(void) {
