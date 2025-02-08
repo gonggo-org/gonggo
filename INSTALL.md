@@ -69,5 +69,5 @@
 6. Please modify the configuration file **./conf/gonggo.conf** and start-stop script file **./gonggoservice** to suit your Linux environment.
 
 7. Service start and stop script comes in two versions:
-   a. (Systemd)[https://github.com/gonggo-org/gonggo/blob/main/scripts/gonggo.service]
-   b. (Conservative)[https://github.com/gonggo-org/gonggo/blob/main/scripts/gonggoservice]
+      a. [Systemd](https://github.com/gonggo-org/gonggo/blob/main/scripts/gonggo.service).
+      b. [Conservative](https://github.com/gonggo-org/gonggo/blob/main/scripts/gonggoservice).
