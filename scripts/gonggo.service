@@ -1,0 +1,12 @@
+[Unit]
+Description=Gonggo backend service
+After=network.target
+
+[Service]
+Type=forking
+User=gonggo
+ExecStart=/opt/gonggo/gonggo -c /opt/gonggo/conf/gonggo.conf
+ExecStop=/opt/gonggo/gonggo -c /opt/gonggo/conf/gonggo.conf --stop
+
+[Install]
+WantedBy=multi-user.target

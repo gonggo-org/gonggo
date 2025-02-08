@@ -11,10 +11,10 @@
 ## EDIT FROM HERE
 
 # Installation prefix
-prefix=/opt/src/git/gonggo
+prefix=/opt/gonggo
 
 # Who to run the reaservice as, usually "gonggo".  (NOT "root")
-GONGGOUSER=abdul
+GONGGOUSER=gonggo
 
 # Where to keep a log file
 GONGGOLOG="$prefix/log"
@@ -84,8 +84,7 @@ stop_do(){
 	if [ $stopped -eq 1 ]; then
 		echo " ok"
 	else
-		read pid <$GONGGOPID
-		su -l $GONGGOUSER -s /bin/bash -c "kill -s 15 $pid"
+		su -l $GONGGOUSER -s /bin/bash -c "$DAEMON -c '$GONGGOCONF' --stop"
 		sleep 1
 		local i=0
 		while true
