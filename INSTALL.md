@@ -68,20 +68,6 @@
 
 6. Please modify the configuration file **./conf/gonggo.conf** and start-stop script file **./gonggoservice** to suit your Linux environment.
 
-To start the Gonggo service:
-
-   ```console
-   sudo ./gonggoservice start
-   ```
-   
-To stop the Gonggo service:
-
-   ```console
-   sudo ./gonggoservice stop
-   ```
-
-To check the status of the Gonggo service:
-
-   ```console
-   sudo ./gonggoservice status
-   ```
+7. Service start and stop script comes in two versions:
+   a. (Systemd)[https://github.com/gonggo-org/gonggo/blob/main/scripts/gonggo.service]
+   b. (Conservative)[https://github.com/gonggo-org/gonggo/blob/main/scripts/gonggoservice]
