@@ -66,3 +66,6 @@ build-aux
 Makefile
 Makefile.in
 configure
+
+# Miscellaneous
+error.log
