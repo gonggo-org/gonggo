@@ -3,7 +3,7 @@ A Lightweight Message Dispatcher over Web Socket
 
 ![gonggo](https://github.com/user-attachments/assets/7f0c4448-fc64-4658-99cd-fc7f8ba5bf1c)
 
-Gonggo dispatches request from websocket client to the designated service. There are 2 types of request. First, a single shot request is submitted by client. Gonggo dispacthes it to the service. Then, asynchronously, the service pushes a response back to the client.
+Gonggo dispatches request from websocket client to the designated service. There are 2 types of request. First, a single shot request is submitted by client. Gonggo dispatches it to the service. Then, asynchronously, the service pushes a response back to the client.
 
 Second, a multi respond request (subscribe) is submitted by client. The service pushes responses continuously until an unsubscribe request is submitted.
 
