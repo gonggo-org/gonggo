@@ -1,15 +1,14 @@
-#ifndef _GLIB2SHIM_H_
-#define _GLIB2SHIM_H_
+#ifndef _GLIBSHIM_H_
+#define _GLIBSHIM_H_
 
 #ifdef GLIBSHIM
 
 #include <glib.h>
 
 #ifndef g_ptr_array_copy
-extern GPtrArray* gonggo_ptr_array_copy (GPtrArray* array, GCopyFunc func, gpointer user_data);
-#define g_ptr_array_copy gonggo_ptr_array_copy
+extern GPtrArray* g_ptr_array_copy (GPtrArray* array, GCopyFunc func, gpointer user_data);
 #endif //g_ptr_array_copy
 
 #endif //GLIBSHIM
 
-#endif //_GLIB2SHIM_H_
+#endif //_GLIBSHIM_H_

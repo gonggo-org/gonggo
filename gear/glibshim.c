@@ -41,7 +41,7 @@ static inline gsize g_nearest_pow (gsize num)
     return n + 1;
 }
 
-GPtrArray* gonggo_ptr_array_copy (GPtrArray* array, GCopyFunc func, gpointer user_data) {
+GPtrArray* g_ptr_array_copy (GPtrArray* array, GCopyFunc func, gpointer user_data) {
     GRealPtrArray *rarray = (GRealPtrArray *) array;
     GPtrArray *new_array;
 
