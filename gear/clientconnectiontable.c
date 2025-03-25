@@ -4,6 +4,10 @@
 
 #include "util.h"
 
+#ifdef GLIBSHIM
+#include "glibshim.h"
+#endif //GLIBSHIM
+
 static pthread_mutex_t client_connection_table_lock;
 //map connection object to request-UUID array
 static GHashTable *client_connection_table = NULL;

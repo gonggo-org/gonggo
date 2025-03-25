@@ -12,6 +12,7 @@ gonggo_SOURCES += \
 	gear/dbresponddrain.c gear/dbresponddrain.h \
 	gear/define.h \
 	gear/error.h \
+	gear/glibshim.c gear/glibshim.h \
 	gear/globaldata.h \
 	gear/gonggouuid.c gear/gonggouuid.h \
 	gear/log.c gear/log.h \

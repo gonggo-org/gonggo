@@ -29,6 +29,11 @@ AS_IF([test "x$with_civetweb" != x],
 	)])
 AM_CONDITIONAL([CUSTOMCIVETWEB], [test "x$with_civetweb" != x])
 
+AC_ARG_ENABLE([glibshim],
+	[AS_HELP_STRING([--enable-glibshim], [Enable shim for glib])]
+	)
+AM_CONDITIONAL([GLIBSHIM], [test "x$enable_glibshim" != "xyes"])	
+
 AC_CONFIG_FILES([Makefile])
 
 # Set C compiler

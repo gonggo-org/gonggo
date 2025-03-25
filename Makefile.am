@@ -9,6 +9,10 @@ include ./gear/Makefile.am
 AM_CFLAGS = $(DEPS_CFLAGS) -Wall -Werror
 LIBS = $(DEPS_LIBS) -lcivetweb -lpthread -lrt
 
+if GLIBSHIM
+AM_CFLAGS += -DGLIBSHIM
+endif
+
 if CUSTOMCIVETWEB
 AM_CFLAGS += -I$(CIVETWEBHOME)/include
 LDADD = -L$(CIVETWEBHOME)

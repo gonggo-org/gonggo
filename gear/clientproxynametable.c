@@ -7,6 +7,10 @@
 #include "log.h"
 #include "util.h"
 
+#ifdef GLIBSHIM
+#include "glibshim.h"
+#endif //GLIBSHIM
+
 static pthread_mutex_t client_proxyname_table_lock;
 //map proxy-name to ClientProxynameTableValue
 static GHashTable *client_proxyname_table = NULL;
