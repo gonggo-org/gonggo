@@ -171,14 +171,12 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
     respond->err = NULL;
     respond->json = NULL;
     
-    gonggo_log("INFO", "gonggo wait for proxy_channel_idle_wait");    
     if(!proxy_channel_idle_wait(ctx)){
         respond->code = 500;
         respond->err = strdup("proxy is out of service");
         return;
     }
 
-    gonggo_log("INFO", "gonggo gonggo_uuid_generate");   
     gonggo_uuid_generate(rid);
 
     payload_path = (char*)malloc(strlen(rid)+2);
@@ -197,14 +195,11 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
         ctx->shm->state = CHANNEL_REST;        
         pthread_cond_signal(&ctx->shm->proxy_wakeup);
 
-        gonggo_log("INFO", "gonggo pthread_cond_wait dispatcher_wakeup)");
         if(pthread_cond_wait(&ctx->shm->dispatcher_wakeup, &ctx->shm->lock)==EOWNERDEAD) {
-            gonggo_log("INFO", "gonggo pthread_cond_wait wakeup EOWNERDEAD)");
             pthread_mutex_consistent(&ctx->shm->lock);
             respond->code = 500;
             respond->err = strdup("proxy is out of order");
         } else if(ctx->shm->state==CHANNEL_REST_RESPOND) {
-            gonggo_log("INFO", "gonggo pthread_cond_wait wakeup CHANNEL_REST_RESPOND)");
             respond_path = (char*)malloc(strlen(ctx->shm->aid)+2/*backslash and zero terminator*/);
             sprintf(respond_path, "/%s", ctx->shm->aid);
             fd = shm_open(respond_path, O_RDWR, S_IRUSR | S_IWUSR);
