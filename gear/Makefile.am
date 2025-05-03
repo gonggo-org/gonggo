@@ -30,4 +30,5 @@ gonggo_SOURCES += \
 	gear/strarr.c gear/strarr.h \
 	gear/util.c gear/util.h \
 	gear/work.c gear/work.h\
-	gear/wshandler.c gear/wshandler.h
+	gear/wshandler.c gear/wshandler.h\
+	gear/resthandler.c gear/resthandler.h

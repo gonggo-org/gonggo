@@ -29,21 +29,29 @@ void client_service_table_destroy(void) {
     }
 }
 
-void client_service_table_set(const char* request_uuid, const char *service_name, const cJSON *payload) {
+char* client_service_table_service_payload_create(const char *service_name, const cJSON *payload) {
     cJSON *j;
+    char *s;
 
     j = cJSON_CreateObject();
     cJSON_AddItemToObject(j, SERVICE_SERVICE_KEY, cJSON_CreateString(service_name));
     if(payload!=NULL) {        
         cJSON_AddItemToObject(j, SERVICE_PAYLOAD_KEY,  cJSON_Duplicate(payload, true));
     }
+    s = cJSON_PrintUnformatted(j);
+    cJSON_Delete(j);
+
+    return s;
+}
+
+void client_service_table_set(const char* request_uuid, const char *service_name, const cJSON *payload) {
+    char *service_payload;
 
     pthread_mutex_lock(&client_service_table_lock);
     g_hash_table_remove(client_service_table, request_uuid);
-    g_hash_table_insert(client_service_table, strdup(request_uuid), cJSON_PrintUnformatted(j)); 
+    service_payload = client_service_table_service_payload_create(service_name, payload);
+    g_hash_table_insert(client_service_table, strdup(request_uuid), service_payload); 
     pthread_mutex_unlock(&client_service_table_lock);    
-
-    cJSON_Delete(j);
 }
 
 char *client_service_table_dup(const char* request_uuid) {

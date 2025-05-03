@@ -12,6 +12,7 @@
 #include "error.h"
 #include "globaldata.h"
 #include "wshandler.h"
+#include "resthandler.h"
 #include "proxychannelthreadtable.h"
 #include "proxysubscribethreadtable.h"
 #include "proxyalivethreadtable.h"
@@ -44,6 +45,7 @@ int work(pid_t pid, const ConfVar *cv_head)
 	long respond_drain_overdue, respond_drain_period, clienttimeout_period, ping;
 	pthread_t t_proxy_activator, t_respond_drain, t_client_timeout, t_proxy_terminator;
 	pthread_attr_t thread_attr;
+	RestHandlerData rhd;
 
 ////web server:BEGIN	
 	char mg_errtxtbuf[256] = {0};	
@@ -221,6 +223,9 @@ int work(pid_t pid, const ConfVar *cv_head)
         ws_close_handler, //mg_websocket_close_handler close_handler,
         NULL);
 ////webserver start:END
+	
+	rhd.gonggo_name = gonggo_name;
+	mg_set_request_handler(http_ctx, "/**", rest_handler, (void*)&rhd);
 
 	gonggo_log("INFO", "gonggo server started");
 

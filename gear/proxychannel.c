@@ -13,6 +13,7 @@
 #include "clientservicetable.h"
 #include "proxyterminatearray.h"
 #include "util.h"
+#include "gonggouuid.h"
 
 #define CHANNEL_SUFFIX "_channel"
 
@@ -161,6 +162,96 @@ void proxy_channel_stop(ProxyChannelContext* ctx) {
     pthread_mutex_unlock(&ctx->lock);
 }
 
+void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJSON *payload, RestRespond* respond) {
+    char rid[UUIDBUFLEN], *payload_path, *service_name_payload, *respond_path, buff[GONGGOLOGBUFLEN], *answer_str;
+    int fd;
+    cJSON *answer_json;
+
+    respond->code = 0;
+    respond->err = NULL;
+    respond->json = NULL;
+    
+    gonggo_log("INFO", "gonggo wait for proxy_channel_idle_wait");    
+    if(!proxy_channel_idle_wait(ctx)){
+        respond->code = 500;
+        respond->err = strdup("proxy is out of service");
+        return;
+    }
+
+    gonggo_log("INFO", "gonggo gonggo_uuid_generate");   
+    gonggo_uuid_generate(rid);
+
+    payload_path = (char*)malloc(strlen(rid)+2);
+    sprintf(payload_path, "/%s", rid);      
+    service_name_payload = client_service_table_service_payload_create(endpoint, payload);
+
+    do {
+        ctx->shm->payload_buff_length = proxy_channel_create_request(payload_path, ctx->proxy_name, service_name_payload);
+        if(ctx->shm->payload_buff_length<1) {
+            respond->code = 500;
+            respond->err = strdup("proxy is out of order");
+            break;
+        }
+
+        strcpy(ctx->shm->rid, rid);
+        ctx->shm->state = CHANNEL_REST;        
+        pthread_cond_signal(&ctx->shm->proxy_wakeup);
+
+        gonggo_log("INFO", "gonggo pthread_cond_wait dispatcher_wakeup)");
+        if(pthread_cond_wait(&ctx->shm->dispatcher_wakeup, &ctx->shm->lock)==EOWNERDEAD) {
+            gonggo_log("INFO", "gonggo pthread_cond_wait wakeup EOWNERDEAD)");
+            pthread_mutex_consistent(&ctx->shm->lock);
+            respond->code = 500;
+            respond->err = strdup("proxy is out of order");
+        } else if(ctx->shm->state==CHANNEL_REST_RESPOND) {
+            gonggo_log("INFO", "gonggo pthread_cond_wait wakeup CHANNEL_REST_RESPOND)");
+            respond_path = (char*)malloc(strlen(ctx->shm->aid)+2/*backslash and zero terminator*/);
+            sprintf(respond_path, "/%s", ctx->shm->aid);
+            fd = shm_open(respond_path, O_RDWR, S_IRUSR | S_IWUSR);
+            if(fd == -1) {
+                strerror_r(errno, buff, GONGGOLOGBUFLEN);
+                gonggo_log("ERROR", "open shared memory % of REST respond path is failed, %s", respond_path, buff);
+                respond->code = 500;
+                respond->err = strdup("proxy is out of order");
+            } else {
+                answer_str = (char*)mmap(NULL, ctx->shm->answer_buff_length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+                answer_json = cJSON_Parse(answer_str);
+                munmap(answer_str, ctx->shm->answer_buff_length);
+            
+            ////setup respond:BEGIN
+                respond->code = cJSON_GetNumberValue( cJSON_GetObjectItem(answer_json, "code") );
+                if(cJSON_HasObjectItem(answer_json, "err")){
+                    respond->err = strdup(cJSON_GetStringValue(cJSON_GetObjectItem(answer_json, "err")));
+                }
+                if(cJSON_HasObjectItem(answer_json, "json")){
+                    respond->json = cJSON_PrintUnformatted(cJSON_GetObjectItem(answer_json, "json"));
+                }
+            ////setup respond:END
+
+                cJSON_Delete(answer_json);
+            }           
+            free(respond_path);
+            ctx->shm->state = CHANNEL_DONE;
+            pthread_cond_signal(&ctx->shm->proxy_wakeup);
+        }
+    } while(false);
+
+    pthread_mutex_unlock(&ctx->shm->lock);
+    free(service_name_payload);
+    free(payload_path);
+}
+
+void proxy_channel_rest_respond_destroy(RestRespond* respond) {
+    if(respond->err != NULL) {
+        free(respond->err);
+        respond->err = NULL;
+    }
+    if(respond->json != NULL) {
+        free(respond->json);
+        respond->json = NULL;
+    }
+}
+
 static bool proxy_channel_exchange(ProxyChannelContext* ctx) {
     bool alive = true;
     GPtrArray* request_uuid_arr;
@@ -188,6 +279,7 @@ static bool proxy_channel_exchange(ProxyChannelContext* ctx) {
                 ctx->shm->payload_buff_length = proxy_channel_create_request(payload_path, ctx->proxy_name,
                     service_name_payload);
                 if(ctx->shm->payload_buff_length<1) {
+                    pthread_mutex_unlock(&ctx->shm->lock);
                     break;
                 }
                 strcpy(ctx->shm->rid, request_uuid);
@@ -211,6 +303,7 @@ static bool proxy_channel_exchange(ProxyChannelContext* ctx) {
                     pthread_cond_signal(&ctx->shm->proxy_wakeup);
                     client_proxyname_table_request_sent(ctx->proxy_name, request_uuid);
                 }
+
                 pthread_mutex_unlock(&ctx->shm->lock);
                 shm_unlink(payload_path);
             } while(false);
