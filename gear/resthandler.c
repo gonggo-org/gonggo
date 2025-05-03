@@ -27,7 +27,6 @@ int rest_handler(struct mg_connection *conn, void *cbdata) {
 
     ri = mg_get_request_info(conn);
     url = ri->local_uri;
-    //query_string = ri->query_string;
     method = ri->request_method;
 
     p_url = strdup(url+1);//skip first '/'
