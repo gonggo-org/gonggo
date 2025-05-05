@@ -76,12 +76,14 @@ void proxy_thread_kill(const char* proxy_name)
         gonggo_log("INFO", "proxy_thread_kill %s proxy_subscribe_stop done", proxy_name);
     }
 
-    p_channel = proxy_channel_thread_table_get(proxy_name);
+    proxy_channel_thread_table_lock_hold(true);
+    p_channel = proxy_channel_thread_table_get(proxy_name, false);
     if(p_channel!=NULL) {
         gonggo_log("INFO", "proxy_thread_kill %s proxy_channel_stop starts", proxy_name);
         proxy_channel_stop(p_channel->ctx);
         gonggo_log("INFO", "proxy_thread_kill %s proxy_channel_stop done", proxy_name);
     }
+    proxy_channel_thread_table_lock_hold(false);
 
     p_alive = proxy_alive_thread_table_get(proxy_name);
     if(p_alive!=NULL) {

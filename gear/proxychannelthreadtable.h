@@ -12,7 +12,8 @@ typedef struct ProxyChannelTableContext {
 extern void proxy_channel_thread_table_create(void);
 extern void proxy_channel_thread_table_destroy(void);
 extern void proxy_channel_thread_table_set(const char* proxy_name, pthread_t thread, ProxyChannelContext *ctx);
-extern const ProxyChannelTableContext* proxy_channel_thread_table_get(const char* proxy_name);
+extern void proxy_channel_thread_table_lock_hold(bool lock);
+extern const ProxyChannelTableContext* proxy_channel_thread_table_get(const char* proxy_name, bool lock);
 extern void proxy_channel_thread_table_remove(const char* proxy_name);
 
 #endif //_PROXYCHANNELTHREADTABLE_H_

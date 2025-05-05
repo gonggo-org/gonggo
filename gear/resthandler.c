@@ -68,7 +68,9 @@ int rest_handler(struct mg_connection *conn, void *cbdata) {
         return 400;
     }
 
-    if((proxy_channel_table_ctx = proxy_channel_thread_table_get(proxy))==NULL) {        
+    proxy_channel_thread_table_lock_hold(true);
+    if((proxy_channel_table_ctx = proxy_channel_thread_table_get(proxy, false))==NULL) {        
+        proxy_channel_thread_table_lock_hold(false);
         mg_send_http_error(conn, 503, "proxy %s is not available\n", proxy);
         free(p_url);
         return 503;
@@ -142,6 +144,8 @@ int rest_handler(struct mg_connection *conn, void *cbdata) {
 
     payload_json = payload!=NULL ? cJSON_Parse(payload) : NULL;
     proxy_channel_rest(proxy_channel_table_ctx->ctx, endpoint, payload_json, &rest_respond);
+    
+    proxy_channel_thread_table_lock_hold(false);
 
     if(rest_respond.code>=200 && rest_respond.code<=299) {
         mg_send_http_ok(conn, "application/json; charset=utf-8", strlen(rest_respond.json) + 1);

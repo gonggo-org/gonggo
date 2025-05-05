@@ -154,13 +154,15 @@ void client_service_route(const char *remote_addr, const char *uri, const char *
 ////save to table:END
 
 ////wake up proxy channel thread if available:BEGIN
-    proxy_channel_table_ctx = proxy_channel_thread_table_get(proxy_name);
+    proxy_channel_thread_table_lock_hold(true);
+    proxy_channel_table_ctx = proxy_channel_thread_table_get(proxy_name, false);
     proxy_channel_ctx = proxy_channel_table_ctx != NULL ? proxy_channel_table_ctx->ctx : NULL;
     if(proxy_channel_ctx!=NULL) {
         pthread_mutex_lock(&proxy_channel_ctx->lock);
         pthread_cond_signal(&proxy_channel_ctx->wakeup);
         pthread_mutex_unlock(&proxy_channel_ctx->lock);
     }
+    proxy_channel_thread_table_lock_hold(false);
 ////wake up proxy channel thread if available:END
 
     client_service_route_cleanup(root);
@@ -199,11 +201,11 @@ void client_service_drop_conn(const struct mg_connection *conn) {
         free(request_uuid);
     }
 
+    proxy_channel_thread_table_lock_hold(true);
     g_hash_table_iter_init(&iter, client_proxyname_table);
-    while (g_hash_table_iter_next(&iter, (gpointer*)&proxy_name, (gpointer*)&client_proxyname_value)) {
-        proxy_channel_table_ctx = proxy_channel_thread_table_get(proxy_name);
+    while (g_hash_table_iter_next(&iter, (gpointer*)&proxy_name, (gpointer*)&client_proxyname_value)) {        
+        proxy_channel_table_ctx = proxy_channel_thread_table_get(proxy_name, false);
         proxy_channel_ctx = proxy_channel_table_ctx != NULL ? proxy_channel_table_ctx->ctx : NULL;
-
         if(proxy_channel_ctx!=NULL) {
             for(idx=0; idx<client_proxyname_value->request_uuids->len; idx++) {
                 gonggo_uuid_generate(rid);
@@ -217,8 +219,9 @@ void client_service_drop_conn(const struct mg_connection *conn) {
             pthread_mutex_lock(&proxy_channel_ctx->lock);
             pthread_cond_signal(&proxy_channel_ctx->wakeup);
             pthread_mutex_unlock(&proxy_channel_ctx->lock);
-        }
+        }        
     }
+    proxy_channel_thread_table_lock_hold(false);
         
     client_connection_table_remove(conn);
     g_ptr_array_free(request_uuid_arr, false);

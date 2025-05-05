@@ -43,12 +43,24 @@ void proxy_channel_thread_table_set(const char* proxy_name, pthread_t thread, Pr
     pthread_mutex_unlock(&proxy_channel_thread_table_lock);
 }
 
-const ProxyChannelTableContext* proxy_channel_thread_table_get(const char* proxy_name) {
+void proxy_channel_thread_table_lock_hold(bool lock) {
+    if(lock) {
+        pthread_mutex_lock(&proxy_channel_thread_table_lock);
+    } else {
+        pthread_mutex_unlock(&proxy_channel_thread_table_lock);    
+    }
+}
+
+const ProxyChannelTableContext* proxy_channel_thread_table_get(const char* proxy_name, bool lock) {
     ProxyChannelTableContext* p;
 
-    pthread_mutex_lock(&proxy_channel_thread_table_lock);
+    if(lock) {
+        pthread_mutex_lock(&proxy_channel_thread_table_lock);
+    }
     p = (ProxyChannelTableContext*)g_hash_table_lookup(proxy_channel_thread_table, proxy_name);
-    pthread_mutex_unlock(&proxy_channel_thread_table_lock);
+    if(lock) {
+        pthread_mutex_unlock(&proxy_channel_thread_table_lock);
+    }
 
     return p;
 }
