@@ -15,7 +15,7 @@
    To build shared library with OpenSSL v3.0.x interface, please refer to [Building CivetWeb](https://github.com/civetweb/civetweb/blob/master/docs/Building.md):
    
    ```console
-   make clean slib WITH_WEBSOCKET=1 COPT="-DOPENSSL_API_3_0"
+   make clean slib WITH_IPV6=1 WITH_WEBSOCKET=1 SSL_LIB=libssl.so.3 CRYPTO_LIB=libcrypto.so.3 COPT="-DOPENSSL_API_3_0 -DNO_SSL_DL" LOPT="-lssl -lcrypto"
    ```
 
    With CivetWeb version 1.17, I encounter error message when stating -DOPENSSL_API_3_0:  "Multiple OPENSSL_API versions defined". The workaround is commenting out Makefile at line number 114:
