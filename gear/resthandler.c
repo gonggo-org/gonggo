@@ -83,27 +83,6 @@ int rest_handler(struct mg_connection *conn, void *cbdata) {
         || strcmp(method, "PUT")==0
         || strcmp(method, "PATCH")==0
     ) {
-    ////header's content-type
-        content_type = NULL;
-        for(i=0; i<ri->num_headers; i++) {
-            if(strcasecmp(ri->http_headers[i].name, "Content-Type")==0) {
-                content_type = ri->http_headers[i].value;
-                break;
-            }
-        }
-
-        if(content_type == NULL) {
-            mg_send_http_error(conn, 400, "%s\n", "header does not contain Content-Type");
-            free(p_url);
-            return 400;
-        }
-
-        if( content_type != strstr(content_type, "application/json") ) {
-            mg_send_http_error(conn, 400, "Content-Type %s is not application/json\n", content_type);
-            free(p_url);
-            return 400;
-        }
-
     ////payload
         while( (read_len = mg_read(conn, buffer, sizeof(buffer))) > 0 ) {
             if(payload==NULL) {
@@ -117,6 +96,31 @@ int rest_handler(struct mg_connection *conn, void *cbdata) {
             }
             memcpy(payload + write_offset, buffer, read_len);
             payload[payload_len] = 0; 
+        }
+
+        if(payload!=NULL) {
+        ////header's content-type
+            content_type = NULL;
+            for(i=0; i<ri->num_headers; i++) {
+                if(strcasecmp(ri->http_headers[i].name, "Content-Type")==0) {
+                    content_type = ri->http_headers[i].value;
+                    break;
+                }
+            }
+
+            if(content_type == NULL) {
+                proxy_channel_thread_table_lock_hold(false);
+                mg_send_http_error(conn, 400, "%s\n", "header does not contain Content-Type");
+                free(p_url);
+                return 400;
+            }
+
+            if( content_type != strstr(content_type, "application/json") ) {
+                proxy_channel_thread_table_lock_hold(false);
+                mg_send_http_error(conn, 400, "Content-Type %s is not application/json\n", content_type);
+                free(p_url);
+                return 400;
+            }
         }
     } else if(strcmp(method, "GET")==0) {        
         param = ri->query_string != NULL ? strdup(ri->query_string) : NULL;
@@ -137,6 +141,7 @@ int rest_handler(struct mg_connection *conn, void *cbdata) {
             free(param);
         }
     } else {
+        proxy_channel_thread_table_lock_hold(false);
         mg_send_http_error(conn, 501, "method %s is not supported\n", method);
         free(p_url);
         return 501;
