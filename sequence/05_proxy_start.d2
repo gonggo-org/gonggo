@@ -1,0 +1,84 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	proxy: {
+		style: {
+			fill: "#c9f29b"
+			stroke: "#049372"
+		}	
+	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+}
+PROXY START: {
+	shape: sequence_diagram
+	main: Main Thread {class: proxy}
+	log: Logger {class: proxy}
+	single_shot_table: Single Shot Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}
+	multi_repond_table: Multi Respond Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}	
+	reply_queue: Reply Queue {class: proxy}
+	parse_queue: Parse Queue {class: proxy}	
+	proxy_channel_thread: Proxy Channel\nThread {class: proxy}
+	proxy_subscribe_thread: Proxy Subscribe\nThread {class: proxy}
+	gonggo_alive_thread: Gonggo Alive\nSensor Thread {class: proxy}
+	proxy_comm_thread: Proxy Communication\nThread {class: proxy}
+	alive_mutex: Alive Mutex\nMutex {class: shm}
+	proxy_channel_shm: Proxy Channel\nShared Memory {class: shm}
+	proxy_subscribe_shm: Proxy Subscribe\nShared Memory {class: shm}
+	proxy_activator_shm: GONGGO\nProxy Activator\nShared Memory {class: shm}
+	gonggo_proxy_activator_thread: GONGGO\nProxy Activator\nThread
+	gonggo_proxy_channel_thread: GONGGO\nProxy Channel\nThread
+	gonggo_proxy_subscribe_thread: GONGGO\nProxy Subscribe\nThread
+	gonggo_proxy_alive_thread: GONGGO\nProxy Alive\nThread
+	gonggo_proxy_channel_thread_table: GONGGO\nProxy Subscribe\nThread Table {tooltip: map proxy-name to ProxyChannelTableContext}
+	gonggo_proxy_subscribe_thread_table: GONGGO\nProxy Subscribe\nThread Table {tooltip: map proxy-name to ProxySubscribeTableContext}	
+	gonggo_proxy_alive_thread_table: GONGGO\nProxy Alive\nThread Table {tooltip: map proxy-name to ProxyAliveTableContext}
+	
+	gonggo_proxy_activator_thread.a -> proxy_activator_shm.a: wait for signal {class: invoke}
+	main.a -> log: initialize {class: invoke}
+	main.a -> single_shot_table: create {class: invoke}
+	main.a -> multi_repond_table: create {class: invoke}
+	main.a -> reply_queue: create {class: invoke}
+	main.a -> parse_queue: create {class: invoke}
+	main.a -> alive_mutex.a: create and set alive {class: invoke}
+	main.a -> proxy_channel_shm.a: create {class: invoke}
+	main.a -> proxy_subscribe_shm.a: create {class: invoke}	
+	main.a -> proxy_channel_thread: start {class: invoke}
+	main.a -> proxy_subscribe_thread: start {class: invoke}
+	main.a -> gonggo_alive_thread: start {class: invoke}
+	main.a -> proxy_comm_thread: start {class: invoke}	
+	main.a -> alive_mutex.a: lock {class: invoke}
+	main.a -> proxy_activator_shm.a: activation request {class: invoke}	
+	proxy_activator_shm.a -> gonggo_proxy_activator_thread.a: wakeup {class: invoke}
+	gonggo_proxy_activator_thread.a -> gonggo_proxy_channel_thread.a: start {class: invoke}
+	gonggo_proxy_activator_thread.a -> gonggo_proxy_channel_thread_table: register {class: invoke}
+	gonggo_proxy_activator_thread.a -> gonggo_proxy_subscribe_thread.a: start {class: invoke}
+	gonggo_proxy_activator_thread.a -> gonggo_proxy_subscribe_thread_table: register {class: invoke}
+	gonggo_proxy_activator_thread.a -> gonggo_proxy_alive_thread.a: start {class: invoke}	
+	gonggo_proxy_activator_thread.a -> gonggo_proxy_alive_thread_table: register {class: invoke}	
+	proxy_channel_shm.a -> gonggo_proxy_channel_thread.a: wakeup on service request {class: invoke}
+	gonggo_proxy_subscribe_thread.a -> proxy_subscribe_shm.a: interact for service reply  {class: invoke}
+	gonggo_proxy_alive_thread.a -> alive_mutex.a: sense proxy dies {class: invoke}
+	
+	alive_mutex.a.class: shm
+	proxy_activator_shm.a.class: shm
+	proxy_channel_shm.a.class: shm
+	proxy_subscribe_shm.a.class: shm
+}

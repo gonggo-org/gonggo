@@ -1,0 +1,62 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+}
+GONGGO START: {
+	shape: sequence_diagram
+	main: Main Thread
+	log: Logger
+	proxy_thread_kill: Proxy Thread\nKiller
+	response_db: Response\nDatabase
+	proxy_subscribe_thread_table: Proxy Subscribe\nThread Table {tooltip: map proxy-name to ProxySubscribeTableContext}
+	proxy_channel_thread_table: Proxy Subscribe\nThread Table {tooltip: map proxy-name to ProxyChannelTableContext}
+	proxy_alive_thread_table: Proxy Alive\nThread Table {tooltip: map proxy-name to ProxyAliveTableContext}
+	client_request_table: Client Request\nTable {tooltip: map request-UUID to ClientRequestTableContext}
+	client_connection_table: Client Connection\nTable {tooltip: map connection object to request-UUID array}
+	client_service_table: Client Service\nTable {tooltip: map request-UUID to service_name_payload json}
+	client_proxyname_table: Client Proxy Name\nTable {tooltip: map proxy-name to ClientProxynameTableValue}
+	proxy_terminate_array: Proxy Terminate\nArray
+	repond_db_drainer_thread: Response Database\nDrainer Thread
+	client_timeout_thread: Client Timeout\nThread
+	proxy_terminator_thread: Proxy Terminator\nThread	
+	web_socket_server: Web Socket Server
+	proxy_activator_thread: Proxy Activator\nThread
+	alive_mutex: Alive Mutex\nMutex {class: shm}
+	proxy_activator_shm: Proxy Activator\nShared Memory {class: shm}
+	
+	main.a -> log: initialize {class: invoke}
+	main.a -> proxy_thread_kill: initialize {class: invoke}
+	main.a -> response_db: initialize {class: invoke}
+	main.a -> proxy_subscribe_thread_table: create {class: invoke}
+	main.a -> proxy_channel_thread_table: create {class: invoke}
+	main.a -> proxy_alive_thread_table: create {class: invoke}
+	main.a -> client_request_table: create {class: invoke}
+	main.a -> client_connection_table: create {class: invoke}
+	main.a -> client_service_table: create {class: invoke}
+	main.a -> client_proxyname_table: create {class: invoke}
+	main.a -> proxy_terminate_array: create {class: invoke}
+	main.a -> alive_mutex.a: create and set alive {class: invoke}
+	main.a -> repond_db_drainer_thread: start {class: invoke}
+	main.a -> client_timeout_thread: start {class: invoke}
+	main.a -> proxy_terminator_thread: start {class: invoke}
+	main.a -> alive_mutex.a: lock {class: invoke}
+	main.a -> proxy_activator_shm.a: create {class: invoke}
+	main.a -> proxy_activator_thread.a: start {class: invoke}
+	proxy_activator_thread.a -> proxy_activator_shm.a: wait for signal {class: invoke}	
+	main.a -> web_socket_server: start {class: invoke}
+	
+	proxy_activator_shm.a.class: shm
+	alive_mutex.a.class: shm
+}

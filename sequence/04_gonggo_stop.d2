@@ -1,0 +1,83 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	proxy: {
+		style: {
+			fill: "#c9f29b"
+			stroke: "#049372"
+		}	
+	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+}
+GONGGO STOP: {
+	shape: sequence_diagram
+	main: Main Thread	
+	proxy_subsribe_thread: Proxy Subscribe\nThread
+	proxy_channel_thread: Proxy Channel\nThread
+	proxy_alive_thread: Proxy Alive\nThread
+	repond_db_drainer_thread: Response Database\nDrainer Thread
+	client_timeout_thread: Client Timeout\nThread
+	proxy_terminator_thread: Proxy Terminator\nThread
+	log: Logger
+	proxy_subscribe_thread_table: Proxy Subscribe\nThread Table {tooltip: map proxy-name to ProxySubscribeTableContext}
+	proxy_channel_thread_table: Proxy Subscribe\nThread Table {tooltip: map proxy-name to ProxyChannelTableContext}
+	proxy_alive_thread_table: Proxy Alive\nThread Table {tooltip: map proxy-name to ProxyAliveTableContext}
+	client_request_table: Client Request\nTable {tooltip: map request-UUID to ClientRequestTableContext}
+	client_connection_table: Client Connection\nTable {tooltip: map connection object to request-UUID array}
+	client_service_table: Client Service\nTable {tooltip: map request-UUID to service_name_payload json}
+	client_proxyname_table: Client Proxy Name\nTable {tooltip: map proxy-name to ClientProxynameTableValue}	
+	proxy_terminate_array: Proxy Terminate\nArray	
+	response_db: Response\nDatabase
+	proxy_thread_kill: Proxy Thread\nKiller
+	proxy_activator_thread: Proxy Activator\nThread
+	alive_mutex: Alive Mutex\nMutex {class: shm}
+	proxy_activator_shm: Proxy Activator\nShared Memory {class: shm}
+	proxy_gonggo_alive_thread: Proxy Gonggo\nAlive Sensor {class: proxy}
+	proxy_main: Proxy Process {class: proxy}
+	
+	all proxy waits for gonggo alive mutex: {
+		proxy_gonggo_alive_thread -> alive_mutex.a: wait for lock {class: invoke}
+	}			
+	main.a -> alive_mutex.a: set die and unlock {class: invoke}
+	all proxy senses gonggo dies: {
+		alive_mutex.a -> proxy_gonggo_alive_thread: lock acquired {class: invoke}
+		proxy_gonggo_alive_thread -> proxy_main: kill {class: invoke}
+	}
+	gonggo stops 3 threads for each proxy: {
+		main.a -> proxy_subsribe_thread: stop {class: invoke}
+		main.a -> proxy_channel_thread: stop {class: invoke}
+		main.a -> proxy_alive_thread: stop {class: invoke}
+	}
+	main.a -> proxy_activator_thread: stop {class: invoke}
+	main.a -> proxy_activator_shm: destroy {class: invoke}
+	main.a -> repond_db_drainer_thread: stop {class: invoke}
+	main.a -> client_timeout_thread: stop {class: invoke}
+	main.a -> proxy_terminator_thread: stop {class: invoke}
+	main.a -> log: context destroy {class: invoke}
+	main.a -> proxy_subscribe_thread_table: destroy {class: invoke}
+	main.a -> proxy_channel_thread_table: destroy {class: invoke}
+	main.a -> proxy_alive_thread_table: destroy {class: invoke}
+	main.a -> client_request_table: destroy {class: invoke}
+	main.a -> client_connection_table: destroy {class: invoke}
+	main.a -> client_service_table: destroy {class: invoke}
+	main.a -> client_proxyname_table: destroy {class: invoke}
+	main.a -> proxy_terminate_array: destroy {class: invoke}
+	main.a -> alive_mutex.a: destroy {class: invoke}
+	main.a -> response_db: context destroy {class: invoke}
+	main.a -> proxy_thread_kill: context destroy {class: invoke}
+	
+	proxy_activator_shm.class: shm
+	alive_mutex.a.class: shm
+}

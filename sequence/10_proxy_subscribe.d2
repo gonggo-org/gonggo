@@ -1,0 +1,80 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	proxy: {
+		style: {
+			fill: "#c9f29b"
+			stroke: "#049372"
+		}	
+	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+	browser: {
+		style: {
+			fill: "#f1e7fe"
+			stroke: "#663399"
+		}
+	}
+}
+PROXY SUBSCRIBE: {
+	shape: sequence_diagram
+	proxy_subscribe_thread: Proxy Subscribe\nThread {class: proxy}
+	reply_queue: Reply Queue {class: proxy}
+	response_shm: Response\nShared Memory {class: shm}
+	proxy_subscribe_shm: Proxy Subscribe\nShared Memory {class: shm}
+	gonggo_proxy_subscribe_thread: GONGGO\nProxy Subscribe\nThread	
+	gonggo_client_request_table: Gonggo\nClient Request\nTable {tooltip: map request-UUID to ClientRequestTableContext}
+	gonggo_client_connection_table: Gonggo\nClient Connection\nTable {tooltip: map connection object to request-UUID array}
+	gonggo_client_service_table: Gonggo\nClient Service\nTable {tooltip: map request-UUID to service_name_payload json}
+	gonggo_client_proxyname_table: Gonggo\nClient Proxy Name\nTable {tooltip: map proxy-name to ClientProxynameTableValue}		
+	gonggo_client_reply: GONGGO\nClient Reply
+	web_socket_server: GONGGO\nWeb Socket Server
+	browser: Browser {class: browser}
+	
+	LOOP: {
+		proxy_subscribe_thread.a -> proxy_subscribe_shm.a: set state to IDLE {class: invoke}
+		gonggo_proxy_subscribe_thread.a -> proxy_subscribe_shm.a: wait for\nSUBSCRIBE ANSWER {class: invoke}
+		proxy_subscribe_thread.a -> reply_queue: dequeue task_key \nand request type {class: invoke}
+		proxy_subscribe_thread.a -> response_shm.a: create and save response {class: invoke}
+		proxy_subscribe_thread.a -> proxy_subscribe_shm.a: set state to SUBSCRIBE ANSWER {class: invoke}
+		proxy_subscribe_thread.a -> proxy_subscribe_shm.a: wait for SUBSCRIBE DONE {class: invoke}
+		proxy_subscribe_shm.a -> gonggo_proxy_subscribe_thread.a: wakeup {class: invoke}
+		
+		gonggo_proxy_subscribe_thread.a -> proxy_subscribe_shm.a: read {class: invoke}
+		gonggo_proxy_subscribe_thread.a -> gonggo_proxy_subscribe_thread.a: parse response\ninto json headers\nand payload {class: invoke}
+		gonggo_proxy_subscribe_thread.a -> gonggo_client_request_table: get connection\nby request id {class: invoke}
+		
+		ALT: {
+			Single Shot Request: {
+				gonggo_proxy_subscribe_thread.a -> gonggo_client_request_table: drop request id {class: invoke}
+				gonggo_proxy_subscribe_thread.a -> gonggo_client_connection_table: drop request id {class: invoke}
+				gonggo_proxy_subscribe_thread.a -> gonggo_client_service_table: drop request id {class: invoke}
+				gonggo_proxy_subscribe_thread.a -> gonggo_client_proxyname_table: drop request id {class: invoke}
+			}
+		}
+		
+		gonggo_proxy_subscribe_thread.a -> gonggo_client_reply.a: dispatch\nheaders\nand payload {class: invoke}
+		gonggo_client_reply.a -> gonggo_client_reply.a: normalize headers\nand payload format {class: invoke}
+		gonggo_client_reply.a -> web_socket_server.a: dispatch {class: invoke}
+		web_socket_server.a -> web_socket_server.a: prepare\nweb socket\nprotocol {class: invoke}
+		web_socket_server.a -> browser: reply {class: invoke}
+		
+		gonggo_proxy_subscribe_thread.a -> proxy_subscribe_shm.a: set state to\nSUBSCRIBE DONE {class: invoke}		
+		proxy_subscribe_shm.a -> proxy_subscribe_thread.a: wakeup {class: invoke}
+		proxy_subscribe_thread.a -> response_shm.a: destroy {class: invoke}
+	}
+	
+	proxy_subscribe_shm.a.class: shm
+	response_shm.a.class: shm
+}

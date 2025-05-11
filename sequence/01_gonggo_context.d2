@@ -1,0 +1,46 @@
+GONGGO CONTEXT: {
+explanation: |md
+	## ProxySubscribeContext
+	- proxy name
+	- stop
+	- shared memory
+	
+	## ProxySubscribeTableContext
+	- thread id
+	- ProxySubscribeContext
+	
+	## ProxyChannelContext
+    - proxy name
+    - stop
+    - lock mutex
+    - wakeup condition
+    - shared memory
+  
+	## ProxyChannelTableContext
+	- thread id
+	- ProxyChannelContext
+	
+	## ProxyAliveContext
+	- proxy_name
+    - pid
+    - dead
+    - shared memory
+  
+	## ProxyAliveTableContext
+	- thread id
+	- ProxyAliveContext
+  
+	## ClientRequestTableContext
+	- connection object;
+	- timestamp;
+	- timeoutsec;
+  
+	## service_name_payload (string formatted json)
+	- service name
+	- payload object
+    
+	## ClientProxynameTableValue
+	- request uuid array
+	- request sent array
+|
+}

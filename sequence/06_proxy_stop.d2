@@ -1,0 +1,73 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	proxy: {
+		style: {
+			fill: "#c9f29b"
+			stroke: "#049372"
+		}	
+	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+}
+PROXY STOP: {
+	shape: sequence_diagram
+	main: Main Thread {class: proxy}
+	proxy_channel_thread: Proxy Channel\nThread {class: proxy}
+	proxy_subscribe_thread: Proxy Subscribe\nThread {class: proxy}
+	gonggo_alive_thread: Gonggo Alive\nSensor Thread {class: proxy}
+	proxy_comm_thread: Proxy Communication\nThread {class: proxy}	
+	log: Logger {class: proxy}
+	single_shot_table: Single Shot Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}
+	multi_repond_table: Multi Respond Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}	
+	reply_queue: Reply Queue {class: proxy}
+	parse_queue: Parse Queue {class: proxy}	
+	alive_mutex: Alive Mutex\nMutex {class: shm}
+	gonggo_proxy_terminator_thread: GONGGO\nProxy Terminator\nThread
+	gonggo_proxy_alive_thread: GONGGO\nProxy \nAlive Sensor	
+	gonggo_proxy_channel_thread: GONGGO\nProxy Channel\nThread
+	gonggo_proxy_subscribe_thread: GONGGO\nProxy Subscribe\nThread
+	gonggo_proxy_alive_thread: GONGGO\nProxy Alive\nThread
+	gonggo_proxy_channel_thread_table: GONGGO\nProxy Subscribe\nThread Table {tooltip: map proxy-name to ProxyChannelTableContext}
+	gonggo_proxy_subscribe_thread_table: GONGGO\nProxy Subscribe\nThread Table {tooltip: map proxy-name to ProxySubscribeTableContext}	
+	gonggo_proxy_alive_thread_table: GONGGO\nProxy Alive\nThread Table {tooltip: map proxy-name to ProxyAliveTableContext}	
+
+	gonggo_proxy_alive_thread -> alive_mutex.a: wait for lock {class: invoke}
+	main.a -> alive_mutex.a: set die and unlock {class: invoke}
+	alive_mutex.a -> gonggo_proxy_alive_thread: lock acquired {class: invoke}
+	gonggo_proxy_alive_thread -> gonggo_proxy_terminator_thread.a: stop proxy threads {class: invoke}	
+	gonggo_proxy_terminator_thread.a -> gonggo_proxy_channel_thread: stop {class: invoke}
+	gonggo_proxy_terminator_thread.a -> gonggo_proxy_channel_thread_table: drop {class: invoke}
+	gonggo_proxy_terminator_thread.a -> gonggo_proxy_subscribe_thread: stop {class: invoke}
+	gonggo_proxy_terminator_thread.a -> gonggo_proxy_subscribe_thread_table: drop {class: invoke}
+	gonggo_proxy_terminator_thread.a -> gonggo_proxy_alive_thread: stop {class: invoke}
+	gonggo_proxy_terminator_thread.a -> gonggo_proxy_alive_thread_table: drop {class: invoke}	
+	main.a -> proxy_channel_thread: stop {class: invoke}
+	main.a -> proxy_subscribe_thread: stop {class: invoke}
+	main.a -> gonggo_alive_thread: stop {class: invoke}
+	main.a -> proxy_comm_thread: stop {class: invoke}
+	main.a -> log: context destroy {class: invoke}
+	main.a -> single_shot_table: destroy {class: invoke}
+	main.a -> reply_queue: destroy {class: invoke}
+	main.a -> parse_queue: destroy {class: invoke}		
+	main.a -> alive_mutex.a: destroy {class: invoke}
+	
+	alive_mutex.a {class: shm}
+}

@@ -1,0 +1,105 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	proxy: {
+		style: {
+			fill: "#c9f29b"
+			stroke: "#049372"
+		}	
+	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+	cb: {
+		style: {
+			fill: "#F4D9D0"
+			stroke: "#921A40"
+		}
+	}
+}
+REQUEST PROCESSING: {
+	shape: sequence_diagram
+	gonggo_proxy_channel_thread: GONGGO\nProxy Channel\nThread {class: proxy}
+	client_proxyname_table: Client Proxy Name\nTable {tooltip: map proxy-name to ClientProxynameTableValue}	
+	client_service_table: Client Service\nTable {tooltip: map request-UUID to service_name_payload json}
+	proxy_channel_shm: Proxy Channel\nShared Memory {class: shm}
+	request_payload_shm: Request Payload\nShared Memory {class: shm}
+	proxy_channel_thread: Proxy Channel Thread {class: proxy}
+	proxy_comm_thread: Proxy Communication\nThread {class: proxy}
+	single_shot_table: Single Shot Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}
+	multi_repond_table: Multi Respond Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}	
+	parse_queue: Parse Queue {class: proxy}
+	parser: Payload Parser\nCallback {class: cb}
+	
+	gonggo_proxy_channel_thread.a -> client_proxyname_table: get request uuid array\nby proxy name {class: invoke}
+	LOOP: {
+		for each request uuid: {
+			gonggo_proxy_channel_thread -> client_service_table: get service name\nand payload {class: invoke}
+			
+			gonggo_proxy_channel_thread.a -> proxy_channel_shm.a: wait for IDLE {class: invoke}			
+			proxy_channel_thread.a -> proxy_channel_shm.a: set status to IDLE {class: invoke}			
+			proxy_channel_shm.a -> gonggo_proxy_channel_thread.a: wake up on IDLE {class: invoke}
+			proxy_channel_thread.a -> proxy_channel_shm.a: wait for CHANNEL REQUEST {class: invoke}
+			
+			gonggo_proxy_channel_thread.a -> request_payload_shm.a: create and save payload {class: invoke}
+			gonggo_proxy_channel_thread.a -> proxy_channel_shm.a: set status for CHANNEL REQUEST {class: invoke}			
+			proxy_channel_shm.a -> proxy_channel_thread.a: wake up {class: invoke}
+			
+			proxy_channel_thread.a -> request_payload_shm.a: read payload {class: invoke}
+			proxy_channel_thread.a -> parser.a: parse payload {class: invoke}
+			parser.a -> proxy_channel_thread.a: return request type\nand normalized payload {class: invoke}
+			proxy_channel_thread.a -> proxy_channel_thread.a: generate task_key\nfrom service name \nand normalized payload {class: invoke}
+			
+			ALT: {
+				Single Shot Request Type: {
+					proxy_channel_thread.a -> single_shot_table: register task_key and request uuid {class: invoke}
+					proxy_channel_thread.a -> parse_queue: enqueue task_key {class: invoke}
+					proxy_channel_thread.a -> proxy_comm_thread.a: wakeup {class: invoke}
+					proxy_comm_thread.a."Continue with\nPROXY COMMUNICATION"		
+				}
+				
+				Multiple Respond Request Type: {
+					proxy_channel_thread.a -> multi_repond_table: register task_key and request uuid  {class: invoke}
+					ALT: {
+						NEW task_key: {
+							proxy_channel_thread.a -> parse_queue: enqueue task_key {class: invoke}
+							proxy_channel_thread.a -> proxy_comm_thread.b: wakeup {class: invoke}
+							proxy_comm_thread.b."Continue with\nPROXY COMMUNICATION"
+						}
+					}
+				}
+			}
+			
+			gonggo_proxy_channel_thread.a -> request_payload_shm.a: wait for CHANNEL_ACKNOWLEDGED {class: invoke}
+			
+			proxy_channel_thread.a -> proxy_channel_shm.a: set status to CHANNEL_ACKNOWLEDGED {class: invoke}
+			proxy_channel_thread.a -> gonggo_proxy_channel_thread.a: wake up {class: invoke}
+			proxy_channel_thread.a -> proxy_channel_shm.a: wait for DONE {class: invoke}
+			
+			gonggo_proxy_channel_thread.a -> proxy_channel_shm.a: set status for DONE {class: invoke}
+			proxy_channel_shm.a -> proxy_channel_thread.a: wake up {class: invoke}
+			gonggo_proxy_channel_thread.a -> request_payload_shm.a: destroy {class: invoke}
+		}
+	}
+	
+	proxy_channel_shm.a.class: shm
+	request_payload_shm.a.class: shm
+	proxy_channel_thread.a.class: proxy
+	parser.a.class: cb
+}

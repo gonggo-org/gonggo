@@ -1,0 +1,67 @@
+direction: right
+classes: {
+	invoke: {
+		style: {
+			font-size: 18
+			italic: false
+			stroke: black
+		}	
+	}
+	proxy: {
+		style: {
+			fill: "#c9f29b"
+			stroke: "#049372"
+		}	
+	
+	}
+	shm: {
+		style: {
+			fill: "#faf4d3"
+			stroke: "#bd9b19"
+		}
+	}
+	cb: {
+		style: {
+			fill: "#F4D9D0"
+			stroke: "#921A40"
+		}
+	}
+}
+PROXY COMMUNICATION: {
+	shape: sequence_diagram
+	proxy_comm_thread: Proxy Communication\nThread {class: proxy}
+	proxy_subscribe_thread: Proxy Subscribe\nThread {class: proxy}
+	parse_queue: Parse Queue {class: proxy}	
+	reply_queue: Reply Queue {class: proxy}
+	single_shot_table: Single Shot Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}
+	multi_repond_table: Multi Respond Table {
+		class: proxy
+		tooltip: map task_key to request uuid array
+	}	
+	runner: Runner\nCallback {class: cb}
+	
+	LOOP: {
+		proxy_comm_thread.a -> parse_queue: dequeue task_key \nand request type {class: invoke}
+		proxy_comm_thread.a -> proxy_comm_thread.a: convert task_key to json {class: invoke}
+		proxy_comm_thread.a -> runner.a: run {class: invoke}
+		runner.a -> proxy_comm_thread.a: return header and payload {class: invoke}
+		
+		ALT: {
+			Single Shot Request Type: {
+				proxy_comm_thread.a -> single_shot_table: get request uuid array\nby task_key {class: invoke}
+			}
+			Multiple Respond Request Type: {
+				proxy_comm_thread.a -> multi_repond_table: get request uuid array\nby task_key {class: invoke}
+			}
+		}
+		
+		proxy_comm_thread.a -> reply_queue: enqueue request id\nheader and payload {class: invoke}
+		proxy_comm_thread.a -> proxy_subscribe_thread.a: wakeup {class: invoke}
+		proxy_subscribe_thread.a."Continue with PROXY SUBSCRIBE"
+	}
+	
+	runner.a.class: cb
+}
