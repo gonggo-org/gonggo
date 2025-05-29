@@ -228,6 +228,9 @@ static ConfVar* create(FILE *fp) {
         lineptr = NULL;
         n = 0;
     }
+    if(lineptr!=NULL) {
+        free(lineptr);
+    }
 
     return head;
 }
