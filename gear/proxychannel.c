@@ -166,6 +166,7 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
     char rid[UUIDBUFLEN], *payload_path, *service_name_payload, *respond_path, buff[GONGGOLOGBUFLEN], *answer_str;
     int fd;
     cJSON *answer_json;
+    bool shm_created;
 
     respond->code = 0;
     respond->err = NULL;
@@ -182,6 +183,7 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
     payload_path = (char*)malloc(strlen(rid)+2);
     sprintf(payload_path, "/%s", rid);      
     service_name_payload = client_service_table_service_payload_create(endpoint, payload);
+    shm_created = false;
 
     do {
         ctx->shm->payload_buff_length = proxy_channel_create_request(payload_path, ctx->proxy_name, service_name_payload);
@@ -190,6 +192,7 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
             respond->err = strdup("proxy is out of order");
             break;
         }
+        shm_created = true;
 
         strcpy(ctx->shm->rid, rid);
         ctx->shm->state = CHANNEL_REST;        
@@ -232,6 +235,9 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
     } while(false);
 
     pthread_mutex_unlock(&ctx->shm->lock);
+    if(shm_created) {
+        shm_unlink(payload_path);
+    }
     free(service_name_payload);
     free(payload_path);
 }
