@@ -227,6 +227,7 @@ void proxy_channel_rest(ProxyChannelContext* ctx, const char *endpoint, const cJ
             ////setup respond:END
 
                 cJSON_Delete(answer_json);
+                close(fd);
             }           
             free(respond_path);
             ctx->shm->state = CHANNEL_DONE;
